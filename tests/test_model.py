@@ -1,13 +1,17 @@
-from functools import lru_cache
 import os
 import tempfile
+from functools import lru_cache
 
 import pytest
 import torch
+from PIL import Image
 from transformers import GPT2Tokenizer
 
-from clip_text_decoder.model import ClipDecoder, ClipDecoderInferenceModel
-
+from clip_text_decoder.model import (
+    ClipDecoder,
+    ClipDecoderInferenceModel,
+    ImageCaptionInferenceModel,
+)
 
 GPT2_TYPES = ["distilgpt2"]
 DUMMY_TEXTS = [
@@ -78,5 +82,15 @@ def test_inference_model_save_load(gpt2_type: str):
         _ = ClipDecoderInferenceModel.load(path)
 
 
+@pytest.mark.slow
 def test_inference_model_download_pretrained():
     _ = ClipDecoderInferenceModel.download_pretrained()
+
+
+@pytest.mark.slow
+def test_image_caption_model_predict():
+    image = Image.new("RGB", (224, 224))
+    model = ImageCaptionInferenceModel.download_pretrained()
+    pred = model(image)
+    assert isinstance(pred, str)
+    assert len(pred) > 0
